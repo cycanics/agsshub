@@ -1,4 +1,4 @@
-# agsshub
+# AGent SSH hUB (agsshub)
 
 ![agsshub — AGent SSH hUB](docs/agsshub.png)
 
