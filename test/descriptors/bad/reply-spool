@@ -1,0 +1,1 @@
+{"descriptor":1,"summary":"s","requests":[{"subject":null,"form":"text","delivery":["spool"],"summary":"x","reply":{"content_type":"a/b","statuses":[200]},"guide":"g"}]}

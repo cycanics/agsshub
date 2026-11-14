@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# hub-mint — operator tool (run as root on the HUB). Mint the identities no workspace can: every
+# role whose minter is `operator` (docs/identities.md). The key on stdin is the identity's own
+# ed25519 public key; its private half stays wherever the identity runs.
+#
+#   hub-mint add <identity> [--ttl SECONDS] [--replace] < key.pub
+#   hub-mint rm  <identity>
+#   hub-mint list
+#
+# A pinned identity names its workspace (main/ws-a@acme.ssh), which must be enrolled for the
+# org. Re-adding with the same key renews; a different key needs --replace (the old one is
+# evicted). Default lifetime: 10 years.
+set -euo pipefail
+[ "$(id -u)" = 0 ] || { echo "hub-mint: run as root on the hub" >&2; exit 1; }
+HUB_LIB="${HUB_LIB:-/usr/local/lib/hub}"
+. "$HUB_LIB/common.sh"
+install -d -o root -g hub -m 2750 "$CLAIMS/$OP_MINTER"
+exec "$HUB_LIB/mint" "$@"

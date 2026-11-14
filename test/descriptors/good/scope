@@ -1,0 +1,1 @@
+{"descriptor":1,"summary":"s","requests":[{"subject":"a","form":"structured","delivery":["live"],"summary":"x","schema":{},"scope":"address"},{"subject":"b","form":"text","delivery":["spool"],"summary":"x","guide":"g","scope":"instance"},{"subject":"c","form":"text","delivery":["spool"],"summary":"x","guide":"g","scope":"both"}]}

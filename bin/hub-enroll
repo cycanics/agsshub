@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# hub-enroll — operator tool, run as root on the HUB host. Enroll (or replace) a workspace's
+# registrar key: the single key that lets that workspace vouch for its agents. The workspace id is in
+# the key's line, as command="/usr/local/lib/hub/registrar <ws>", which is how the daemon reads it
+# (go/hub/claims.go, admitRegistrar; nothing runs that path), so a registrar can only mint identities
+# pinned to its own workspace (docs/identities.md).
+#
+#   hub-enroll <ws-id> <org>[,<org>...] < registrar_key.pub
+#        e.g. hub-enroll ws-a acme,home < registrar.pub
+#   hub-enroll --list
+#
+# The org list is what that workspace may claim: the registrar refuses an identity in any org
+# not listed here, and hub-mint refuses a pinned identity on a workspace not enrolled for its org.
+# Re-enrolling replaces both the key and the list.
+set -euo pipefail
+[ "$(id -u)" = 0 ] || { echo "hub-enroll: run as root on the hub" >&2; exit 1; }
+AK=/etc/hub/registrars/authorized_keys
+: "${HUB_ROOT:=/var/lib/hub}"
+
+if [ "${1:-}" = --list ]; then
+  sed -n 's/.*command="\/usr\/local\/lib\/hub\/registrar \([a-z0-9-]*\)".*/\1/p' "$AK" | sort -u
+  exit 0
+fi
+
+WS="${1:-}"
+[[ $WS =~ ^ws-[a-z0-9][a-z0-9-]{0,30}$ ]] || { echo "hub-enroll: bad ws id '$WS' (need ws-<name>)" >&2; exit 2; }
+
+ORGS="${2:-}"
+[ -n "$ORGS" ] || { echo "hub-enroll: need an org list, e.g. 'acme,home'" >&2; exit 2; }
+IFS=, read -r -a _orgs <<< "$ORGS"
+for o in "${_orgs[@]}"; do
+  [[ $o =~ ^[a-z0-9][a-z0-9._-]{0,63}$ ]] && [[ $o != *..* ]] || { echo "hub-enroll: bad org '$o'" >&2; exit 2; }
+done
+
+pub="$(cat)"; set -- $pub; ktype="${1:-}"; kblob="${2:-}"
+[ "$ktype" = ssh-ed25519 ] && [ -n "$kblob" ] || { echo "hub-enroll: need an ssh-ed25519 pubkey on stdin" >&2; exit 2; }
+
+line="restrict,command=\"/usr/local/lib/hub/registrar $WS\" $ktype $kblob registrar@$WS"
+
+umask 022
+tmp="$(mktemp)"
+# drop any existing line for this ws, then append the new one (atomic replace)
+grep -v "command=\"/usr/local/lib/hub/registrar $WS\"" "$AK" 2>/dev/null > "$tmp" || true
+printf '%s\n' "$line" >> "$tmp"
+install -o root -g root -m 0644 "$tmp" "$AK"; rm -f "$tmp"
+install -d -o root -g root -m 0755 "$HUB_ROOT/orgs"
+printf '%s\n' "${_orgs[@]}" > "$HUB_ROOT/orgs/$WS"
+chmod 0644 "$HUB_ROOT/orgs/$WS"
+echo "enrolled registrar for $WS orgs=$ORGS ($(ssh-keygen -lf <(printf '%s %s\n' "$ktype" "$kblob") | awk '{print $2}'))"

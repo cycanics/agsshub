@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# PLACEHOLDER — copy to `send` and make executable to wire the email backend.
+# See ../INTERFACE.md for the contract. Inputs arrive as HUB_* env + stdin (attachment bytes).
+set -euo pipefail
+: "${HUB_FROM:?}" "${HUB_ADDR:?}"
+# Real impl would build a MIME message (body = $HUB_BODY, attach $HUB_FILE from stdin) and hand it
+# to an MTA / SMTP relay. Credentials live server-side (never on the ssh client). Example skeleton:
+#
+#   { printf 'From: %s\nTo: %s\nSubject: [hub] message\n\n%s\n' \
+#       "$HUB_FROM" "$HUB_ADDR" "$HUB_BODY"; } | sendmail -t
+#
+echo "email backend: placeholder (from=$HUB_FROM to=$HUB_ADDR) — not wired" >&2
+exit 40

@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# hub-topic — operator tool (run as root on the HUB). Create topics and set who may use them.
+# See docs/topics.md.
+#
+#   hub-topic add  <topic> --publish 'PAT ...' [--subscribe 'PAT ...'] [--rate N] [--burst N]
+#   hub-topic rm   <topic>
+#   hub-topic register_description <topic> [--see PAT]... < descriptor.json | --clear
+#   hub-topic list
+#
+# <topic> is topic[.<project>]+<name>@<org>.ssh. Patterns are shell patterns over identities;
+# --publish and --subscribe may repeat. subscribe defaults to the topic's own org. Re-adding a
+# topic replaces its policy and keeps its subscriptions.
+set -euo pipefail
+[ "$(id -u)" = 0 ] || { echo "hub-topic: run as root on the hub" >&2; exit 1; }
+HUB_LIB="${HUB_LIB:-/usr/local/lib/hub}"
+. "$HUB_LIB/common.sh"
+install -d -o root -g hub -m 2770 "$TOPICS"
+install -d -o hub  -g hub -m 2770 "$SUBS"
+
+valid_topic(){ valid_ident "${1:-}" && [ "$(id_role "$1")" = topic ]; }
+
+verb="${1:-}"; shift || true
+case "$verb" in
+  add)
+    topic="${1:-}"; shift || true
+    valid_topic "$topic" || { echo "hub-topic: bad topic (need topic[.<project>]+<name>@<org>$ID_SUFFIX)" >&2; exit 2; }
+    pub=""; subp=""; rate="$TOPIC_RATE"; burst="$TOPIC_BURST"
+    while [ $# -gt 0 ]; do case "$1" in
+      --publish)   pub="${pub:+$pub }${2:-}";   shift 2;;
+      --subscribe) subp="${subp:+$subp }${2:-}"; shift 2;;
+      --rate)      rate="${2:-}";  shift 2;;
+      --burst)     burst="${2:-}"; shift 2;;
+      *) echo "hub-topic: unexpected arg '$1'" >&2; exit 2;; esac; done
+    [ -n "$pub" ] || { echo "hub-topic: --publish required (who may publish)" >&2; exit 2; }
+    [[ $rate =~ ^[1-9][0-9]*$ && $burst =~ ^[1-9][0-9]*$ ]] || { echo "hub-topic: --rate/--burst must be positive integers" >&2; exit 2; }
+    [ -n "$subp" ] || subp="*@$(id_org "$topic")$ID_SUFFIX"
+    td="$(topic_dir "$topic")"
+    install -d -o hub -g hub -m 2770 "$td" "$td/subs"
+    umask 027
+    tmp="$(mktemp)"
+    printf 'topic=%s\npublish=%s\nsubscribe=%s\nrate=%s\nburst=%s\n' "$topic" "$pub" "$subp" "$rate" "$burst" > "$tmp"
+    install -o root -g hub -m 0640 "$tmp" "$td/policy"; rm -f "$tmp"
+    echo "topic $topic publish=[$pub] subscribe=[$subp] rate=$rate/s burst=$burst"
+    ;;
+  rm)
+    topic="${1:-}"; valid_topic "$topic" || { echo "hub-topic: bad topic" >&2; exit 2; }
+    td="$(topic_dir "$topic")"
+    [ -f "$td/policy" ] || { echo "no such topic" >&2; exit 3; }
+    shopt -s nullglob
+    for rec in "$td/subs"/*; do
+      s="$(rec_get sub "$rec")"; [ -n "$s" ] || continue
+      rm -f "$(sub_link "$s")"
+      # renamed away first: a publication fanning out meanwhile finds no mailbox, and makes none
+      b="$INBOX/$(fs_name "$s")"; g="$INBOX/.stage.rm.$$.${RANDOM}${RANDOM}"
+      if mv -T "$b" "$g" 2>/dev/null; then rm -rf "$g"; else rm -rf "$b"; fi
+    done
+    rm -rf "$td" "$INBOX/$(fs_name "$topic")"
+    echo "removed $topic"
+    ;;
+  register_description)
+    topic="${1:-}"; shift || true
+    valid_topic "$topic" || { echo "hub-topic: bad topic" >&2; exit 2; }
+    td="$(topic_dir "$topic")"
+    [ -f "$td/policy" ] || { echo "no such topic" >&2; exit 3; }
+    clear=0; see=()
+    while [ $# -gt 0 ]; do case "$1" in
+      --clear) clear=1; shift;;
+      --see) [ $# -ge 2 ] || { echo "hub-topic: --see needs a value" >&2; exit 2; }; see+=(--see "$2"); shift 2;;
+      *) echo "hub-topic: unexpected arg '$1'" >&2; exit 2;; esac; done
+    if [ "$clear" = 1 ]; then
+      [ "${#see[@]}" = 0 ] || { echo "hub-topic: --clear takes no --see" >&2; exit 2; }
+      rm -f "$td/descriptor"; echo "cleared $topic"; exit 0
+    fi
+    [ -x "$HUB_LIB/hub-descriptor" ] || { echo "hub-topic: this hub has no hub-descriptor (go/build.sh, then install.sh)" >&2; exit 1; }
+    when="$(iso_time "$(now_epoch)")"; tmp="$td/.descriptor.$$"
+    trap 'rm -f "$tmp"' EXIT
+    printf 'Date: %s\n' "$when" > "$tmp"
+    rc=0; "$HUB_LIB/hub-descriptor" --topic "${see[@]}" >> "$tmp" || rc=$?
+    [ "$rc" = 0 ] || exit "$rc"
+    chown hub:hub "$tmp"; chmod 0640 "$tmp"; mv -f "$tmp" "$td/descriptor"
+    echo "described $topic $when"
+    ;;
+  list)
+    shopt -s nullglob; found=0
+    for pol in "$TOPICS"/*/policy; do
+      subs=("${pol%/policy}/subs"/*)
+      printf '%s\tpublish=[%s]\tsubscribe=[%s]\trate=%s/s\tsubs=%s\n' "$(rec_get topic "$pol")" \
+        "$(rec_get publish "$pol")" "$(rec_get subscribe "$pol")" "$(rec_get rate "$pol")" "${#subs[@]}"
+      found=1
+    done
+    if [ "$found" = 0 ]; then echo "(no topics)"; fi
+    ;;
+  *) echo "usage: hub-topic add <topic> --publish 'PAT ...' [--subscribe 'PAT ...'] [--rate N] [--burst N] | rm <topic> | register_description <topic> [--see PAT]... [--clear] | list" >&2; exit 2 ;;
+esac

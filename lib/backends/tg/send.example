@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# PLACEHOLDER — copy to `send` and make executable to wire the Telegram backend.
+# See ../INTERFACE.md. HUB_ADDR = Telegram chat id. Bot token lives server-side (never on client).
+set -euo pipefail
+: "${HUB_FROM:?}" "${HUB_ADDR:?}"
+# Real impl would POST to the Bot API sendMessage (text = "$HUB_FROM: $HUB_BODY"); an attachment
+# ($HUB_FILE from stdin) would go via sendDocument. Token from a 0600 server-side env file.
+echo "tg backend: placeholder (from=$HUB_FROM chat=$HUB_ADDR) — not wired" >&2
+exit 40

@@ -1,0 +1,26 @@
+[Unit]
+Description=agsshub hub (agsshub-hubd: its own SSH server)
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/usr/local/sbin/agsshub-hubd
+
+[Service]
+Type=simple
+User=hub
+Group=hub
+UMask=0007
+EnvironmentFile=-/etc/default/agsshub-hubd
+ExecStart=/usr/local/sbin/agsshub-hubd $HUBD_ARGS
+Restart=on-failure
+RestartSec=2
+LimitNOFILE=65536
+# a port below 1024 needs this; harmless otherwise
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/hub
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

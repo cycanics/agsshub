@@ -1,0 +1,7 @@
+# local scratch, never commit keys or runtime state
+*.pub
+*_key
+id_ed25519*
+.env
+/run-local/
+/go/bin/

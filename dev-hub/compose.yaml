@@ -1,0 +1,18 @@
+# agsshub dev hub — docs/dev-hub.md
+name: agsshub-dev-hub
+services:
+  hub:
+    build:
+      context: ..
+      dockerfile: dev-hub/Dockerfile
+    image: ${DEV_HUB_IMAGE:-agsshub-dev-hub:latest}
+    environment:
+      HUBD_ARGS: ${DEV_HUB_HUBD_ARGS:-}
+    ports:
+      - "${DEV_HUB_BIND:-127.0.0.1}:${DEV_HUB_PORT-2422}:2422"
+    networks:
+      default:
+        aliases: [agsshub-dev-hub]
+networks:
+  default:
+    name: ${DEV_HUB_NETWORK:-agsshub-dev}

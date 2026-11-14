@@ -1,0 +1,1 @@
+{"descriptor":1,"summary":"s","requests":[{"subject":"a","form":"structured","delivery":["spool"],"summary":"x","schema":{},"guide":"Retry\nunder --id"}]}

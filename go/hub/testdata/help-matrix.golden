@@ -1,0 +1,896 @@
+### svc.one@acme.ssh: help
+exit 0
+--- stdout
+Caller: svc.one@acme.ssh
+Role: svc
+Receives: yes
+Sends: yes
+
+chat <peer> [--chunked]
+  Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored. Needs: receive, send.
+send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]
+  Send a message or a file; --live offers it to a live recipient and returns its reply. Needs: send.
+send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]
+  Send a tar on stdin as one message, stored as received. Needs: send.
+recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]
+  List, read or follow a mailbox as a chunked stream; only a read without --peek consumes. Needs: receive.
+recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]
+  Stream a bag back as the tar it came as; consumes it without --peek. Needs: receive.
+recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)
+  Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order. Needs: receive.
+accept <sid>
+  Take a live exchange announced on your follow. Needs: receive.
+sub <topic> [--ttl S]
+  Subscribe to a topic; prints the subscription's name. Needs: receive.
+unsub <sub>
+  Drop a subscription and its mailbox. Needs: receive.
+register <instance> [--ttl S]
+  As an address that takes instances: bind an instance to the key on stdin. Needs: receive.
+release [<instance>]
+  Drop one of your instances; as an instance, yourself. Needs: receive.
+admit <instance> [<instance> ...]
+  As an address that takes instances: admit instances as targets, answering their ask. Needs: receive.
+reject <instance> [<instance> ...]
+  As an address that takes instances: say an instance does not exist: its claim and mailbox go. Needs: receive.
+instances
+  List your instances: mail waiting, holder, claim. Needs: receive.
+list [--type native|topic|sub|email|tg]
+  List reachable targets and their types. Needs: receive.
+id
+  Print your identity and serial.
+help [<target>] [--json]
+  What the hub supports, or what an address handles.
+register_description [--see PAT]... < descriptor.json | --clear
+  Register what this identity handles, checked by the hub. Needs: receive.
+
+Exit codes: README.md. Add --json to help for this list as JSON; docs/help.md has the format.
+--- stderr
+### svc.one@acme.ssh: help --json
+exit 0
+--- stdout
+{"caller":"svc.one@acme.ssh","role":"svc","receives":"yes","sends":"yes","hub":{"verbs":[{"verb":"chat","usage":"chat <peer> [--chunked]","needs":["receive","send"],"summary":"Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored."},{"verb":"send","usage":"send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]","needs":["send"],"summary":"Send a message or a file; --live offers it to a live recipient and returns its reply."},{"verb":"send_bag","usage":"send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]","needs":["send"],"summary":"Send a tar on stdin as one message, stored as received."},{"verb":"recv","usage":"recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]","needs":["receive"],"summary":"List, read or follow a mailbox as a chunked stream; only a read without --peek consumes."},{"verb":"recv_bag","usage":"recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]","needs":["receive"],"summary":"Stream a bag back as the tar it came as; consumes it without --peek."},{"verb":"recv_ack","usage":"recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)","needs":["receive"],"summary":"Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order."},{"verb":"accept","usage":"accept <sid>","needs":["receive"],"summary":"Take a live exchange announced on your follow."},{"verb":"sub","usage":"sub <topic> [--ttl S]","needs":["receive"],"summary":"Subscribe to a topic; prints the subscription's name."},{"verb":"unsub","usage":"unsub <sub>","needs":["receive"],"summary":"Drop a subscription and its mailbox."},{"verb":"register","usage":"register <instance> [--ttl S]","needs":["receive"],"summary":"As an address that takes instances: bind an instance to the key on stdin."},{"verb":"release","usage":"release [<instance>]","needs":["receive"],"summary":"Drop one of your instances; as an instance, yourself."},{"verb":"admit","usage":"admit <instance> [<instance> ...]","needs":["receive"],"summary":"As an address that takes instances: admit instances as targets, answering their ask."},{"verb":"reject","usage":"reject <instance> [<instance> ...]","needs":["receive"],"summary":"As an address that takes instances: say an instance does not exist: its claim and mailbox go."},{"verb":"instances","usage":"instances","needs":["receive"],"summary":"List your instances: mail waiting, holder, claim."},{"verb":"list","usage":"list [--type native|topic|sub|email|tg]","needs":["receive"],"summary":"List reachable targets and their types."},{"verb":"id","usage":"id","needs":[],"summary":"Print your identity and serial."},{"verb":"help","usage":"help [<target>] [--json]","needs":[],"summary":"What the hub supports, or what an address handles."},{"verb":"register_description","usage":"register_description [--see PAT]... < descriptor.json | --clear","needs":["receive"],"summary":"Register what this identity handles, checked by the hub."}]}}
+--- stderr
+### svc.one@acme.ssh: help svc.one@acme.ssh
+exit 0
+--- stdout
+Target: svc.one@acme.ssh
+Type: native
+Role: svc
+Receives: yes
+Claim: live
+Live: no
+Instances: no
+Described: no
+
+No description registered: this address has not said what requests it handles.
+--- stderr
+### svc.one@acme.ssh: help svc.one@acme.ssh --json
+exit 0
+--- stdout
+{"target":"svc.one@acme.ssh","type":"native","role":"svc","receives":"yes","claim":"live","live":false,"instances":false,"described":null,"descriptor":null}
+--- stderr
+### svc.one@acme.ssh: help svc.out@corp.ssh
+exit 0
+--- stdout
+{"target":"svc.out@corp.ssh","type":"native","role":"svc","receives":"yes","claim":"live","live":false,"instances":false,"described":"D","descriptor":{"descriptor":1,"summary":"Only for programs.","requests":[{"subject":"a.b","form":"structured","delivery":["live"],"summary":"Do it.","schema":{}}]}}
+--- stderr
+### svc.one@acme.ssh: help svc.out@corp.ssh --json
+exit 0
+--- stdout
+{"target":"svc.out@corp.ssh","type":"native","role":"svc","receives":"yes","claim":"live","live":false,"instances":false,"described":"D","descriptor":{"descriptor":1,"summary":"Only for programs.","requests":[{"subject":"a.b","form":"structured","delivery":["live"],"summary":"Do it.","schema":{}}]}}
+--- stderr
+### svc.one@acme.ssh: help group.s@acme.ssh
+exit 0
+--- stdout
+Target: group.s@acme.ssh
+Type: native
+Role: group
+Receives: yes
+Claim: live
+Live: no
+Instances: yes
+Described: D
+
+Runs sessions.
+Version: 0.5
+
+cmd.create	structured	live	address	-	Start one.
+in.message	structured	spool	both	-	A message.
+(no subject)	text	spool	instance	-	Anything.
+
+(no subject):
+  Say what you need.
+  And by when.
+--- stderr
+### svc.one@acme.ssh: help group.s@acme.ssh --json
+exit 0
+--- stdout
+{"target":"group.s@acme.ssh","type":"native","role":"group","receives":"yes","claim":"live","live":false,"instances":true,"described":"D","descriptor":{"descriptor":1,"version":"0.5","summary":"Runs sessions.","requests":[{"subject":"cmd.create","form":"structured","delivery":["live"],"summary":"Start one.","scope":"address","schema":{"type":"object"},"reply":{"content_type":"application/json","statuses":[200,404,500]}},{"subject":"in.message","form":"structured","delivery":["spool"],"summary":"A message.","scope":"both","schema":{}},{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","scope":"instance","guide":"Say what you need.\nAnd by when."}]}}
+--- stderr
+### svc.one@acme.ssh: help group.s+abc@acme.ssh
+exit 0
+--- stdout
+Target: group.s+abc@acme.ssh
+Type: native
+Role: group
+Receives: yes
+Claim: none
+Live: no
+Address: group.s@acme.ssh
+Described: D
+
+Runs sessions.
+Version: 0.5
+
+in.message	structured	spool	both	-	A message.
+(no subject)	text	spool	instance	-	Anything.
+
+(no subject):
+  Say what you need.
+  And by when.
+--- stderr
+### svc.one@acme.ssh: help group.s+abc@acme.ssh --json
+exit 0
+--- stdout
+{"target":"group.s+abc@acme.ssh","type":"native","role":"group","receives":"yes","claim":"none","live":false,"address":"group.s@acme.ssh","described":"D","descriptor":{"descriptor":1,"version":"0.5","summary":"Runs sessions.","requests":[{"subject":"in.message","form":"structured","delivery":["spool"],"summary":"A message.","scope":"both","schema":{}},{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","scope":"instance","guide":"Say what you need.\nAnd by when."}]}}
+--- stderr
+### svc.one@acme.ssh: help svc.none+x@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.none+x@acme.ssh
+### svc.one@acme.ssh: help svc.none+x@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.none+x@acme.ssh
+### svc.one@acme.ssh: help svc.nobody@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.nobody@acme.ssh
+### svc.one@acme.ssh: help svc.nobody@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.nobody@acme.ssh
+### svc.one@acme.ssh: help topic+ev@acme.ssh
+exit 0
+--- stdout
+Target: topic+ev@acme.ssh
+Type: topic
+Role: topic
+Receives: policy
+Publish: no
+Subscribe: yes
+Described: D
+
+For people.
+
+(no subject)	text	spool	both	-	Anything.
+
+(no subject):
+  Say it.
+--- stderr
+### svc.one@acme.ssh: help topic+ev@acme.ssh --json
+exit 0
+--- stdout
+{"target":"topic+ev@acme.ssh","type":"topic","role":"topic","receives":"policy","publish":false,"subscribe":true,"described":"D","descriptor":{"descriptor":1,"summary":"For people.","requests":[{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","guide":"Say it."}]}}
+--- stderr
+### svc.one@acme.ssh: help topic+no@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+no@acme.ssh
+### svc.one@acme.ssh: help topic+no@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+no@acme.ssh
+### svc.one@acme.ssh: help carol
+exit 0
+--- stdout
+Target: carol
+Type: email
+Described: no
+
+An alias for delivery through email: it has no description.
+--- stderr
+### svc.one@acme.ssh: help carol --json
+exit 0
+--- stdout
+{"target":"carol","type":"email","described":null,"descriptor":null}
+--- stderr
+### svc.one@acme.ssh: help nobody
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: nobody
+### svc.one@acme.ssh: help nobody --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: nobody
+### svc.one@acme.ssh: help sub.x+y@acme.ssh
+exit 2
+--- stdout
+--- stderr
+dispatch: a subscription has no description: help its topic
+### svc.one@acme.ssh: help sub.x+y@acme.ssh --json
+exit 2
+--- stdout
+--- stderr
+dispatch: a subscription has no description: help its topic
+### svc.one@acme.ssh: help Bad@T
+exit 2
+--- stdout
+--- stderr
+dispatch: bad target
+### svc.one@acme.ssh: help Bad@T --json
+exit 2
+--- stdout
+--- stderr
+dispatch: bad target
+### svc.out@corp.ssh: help
+exit 0
+--- stdout
+Caller: svc.out@corp.ssh
+Role: svc
+Receives: yes
+Sends: yes
+
+chat <peer> [--chunked]
+  Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored. Needs: receive, send.
+send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]
+  Send a message or a file; --live offers it to a live recipient and returns its reply. Needs: send.
+send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]
+  Send a tar on stdin as one message, stored as received. Needs: send.
+recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]
+  List, read or follow a mailbox as a chunked stream; only a read without --peek consumes. Needs: receive.
+recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]
+  Stream a bag back as the tar it came as; consumes it without --peek. Needs: receive.
+recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)
+  Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order. Needs: receive.
+accept <sid>
+  Take a live exchange announced on your follow. Needs: receive.
+sub <topic> [--ttl S]
+  Subscribe to a topic; prints the subscription's name. Needs: receive.
+unsub <sub>
+  Drop a subscription and its mailbox. Needs: receive.
+register <instance> [--ttl S]
+  As an address that takes instances: bind an instance to the key on stdin. Needs: receive.
+release [<instance>]
+  Drop one of your instances; as an instance, yourself. Needs: receive.
+admit <instance> [<instance> ...]
+  As an address that takes instances: admit instances as targets, answering their ask. Needs: receive.
+reject <instance> [<instance> ...]
+  As an address that takes instances: say an instance does not exist: its claim and mailbox go. Needs: receive.
+instances
+  List your instances: mail waiting, holder, claim. Needs: receive.
+list [--type native|topic|sub|email|tg]
+  List reachable targets and their types. Needs: receive.
+id
+  Print your identity and serial.
+help [<target>] [--json]
+  What the hub supports, or what an address handles.
+register_description [--see PAT]... < descriptor.json | --clear
+  Register what this identity handles, checked by the hub. Needs: receive.
+
+Exit codes: README.md. Add --json to help for this list as JSON; docs/help.md has the format.
+--- stderr
+### svc.out@corp.ssh: help --json
+exit 0
+--- stdout
+{"caller":"svc.out@corp.ssh","role":"svc","receives":"yes","sends":"yes","hub":{"verbs":[{"verb":"chat","usage":"chat <peer> [--chunked]","needs":["receive","send"],"summary":"Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored."},{"verb":"send","usage":"send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]","needs":["send"],"summary":"Send a message or a file; --live offers it to a live recipient and returns its reply."},{"verb":"send_bag","usage":"send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]","needs":["send"],"summary":"Send a tar on stdin as one message, stored as received."},{"verb":"recv","usage":"recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]","needs":["receive"],"summary":"List, read or follow a mailbox as a chunked stream; only a read without --peek consumes."},{"verb":"recv_bag","usage":"recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]","needs":["receive"],"summary":"Stream a bag back as the tar it came as; consumes it without --peek."},{"verb":"recv_ack","usage":"recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)","needs":["receive"],"summary":"Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order."},{"verb":"accept","usage":"accept <sid>","needs":["receive"],"summary":"Take a live exchange announced on your follow."},{"verb":"sub","usage":"sub <topic> [--ttl S]","needs":["receive"],"summary":"Subscribe to a topic; prints the subscription's name."},{"verb":"unsub","usage":"unsub <sub>","needs":["receive"],"summary":"Drop a subscription and its mailbox."},{"verb":"register","usage":"register <instance> [--ttl S]","needs":["receive"],"summary":"As an address that takes instances: bind an instance to the key on stdin."},{"verb":"release","usage":"release [<instance>]","needs":["receive"],"summary":"Drop one of your instances; as an instance, yourself."},{"verb":"admit","usage":"admit <instance> [<instance> ...]","needs":["receive"],"summary":"As an address that takes instances: admit instances as targets, answering their ask."},{"verb":"reject","usage":"reject <instance> [<instance> ...]","needs":["receive"],"summary":"As an address that takes instances: say an instance does not exist: its claim and mailbox go."},{"verb":"instances","usage":"instances","needs":["receive"],"summary":"List your instances: mail waiting, holder, claim."},{"verb":"list","usage":"list [--type native|topic|sub|email|tg]","needs":["receive"],"summary":"List reachable targets and their types."},{"verb":"id","usage":"id","needs":[],"summary":"Print your identity and serial."},{"verb":"help","usage":"help [<target>] [--json]","needs":[],"summary":"What the hub supports, or what an address handles."},{"verb":"register_description","usage":"register_description [--see PAT]... < descriptor.json | --clear","needs":["receive"],"summary":"Register what this identity handles, checked by the hub."}]}}
+--- stderr
+### svc.out@corp.ssh: help svc.one@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.one@acme.ssh
+### svc.out@corp.ssh: help svc.one@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.one@acme.ssh
+### svc.out@corp.ssh: help svc.out@corp.ssh
+exit 0
+--- stdout
+{"target":"svc.out@corp.ssh","type":"native","role":"svc","receives":"yes","claim":"live","live":false,"instances":false,"described":"D","descriptor":{"descriptor":1,"summary":"Only for programs.","requests":[{"subject":"a.b","form":"structured","delivery":["live"],"summary":"Do it.","schema":{}}]}}
+--- stderr
+### svc.out@corp.ssh: help svc.out@corp.ssh --json
+exit 0
+--- stdout
+{"target":"svc.out@corp.ssh","type":"native","role":"svc","receives":"yes","claim":"live","live":false,"instances":false,"described":"D","descriptor":{"descriptor":1,"summary":"Only for programs.","requests":[{"subject":"a.b","form":"structured","delivery":["live"],"summary":"Do it.","schema":{}}]}}
+--- stderr
+### svc.out@corp.ssh: help group.s@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: group.s@acme.ssh
+### svc.out@corp.ssh: help group.s@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: group.s@acme.ssh
+### svc.out@corp.ssh: help group.s+abc@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: group.s+abc@acme.ssh
+### svc.out@corp.ssh: help group.s+abc@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: group.s+abc@acme.ssh
+### svc.out@corp.ssh: help svc.none+x@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.none+x@acme.ssh
+### svc.out@corp.ssh: help svc.none+x@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.none+x@acme.ssh
+### svc.out@corp.ssh: help svc.nobody@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.nobody@acme.ssh
+### svc.out@corp.ssh: help svc.nobody@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.nobody@acme.ssh
+### svc.out@corp.ssh: help topic+ev@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+ev@acme.ssh
+### svc.out@corp.ssh: help topic+ev@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+ev@acme.ssh
+### svc.out@corp.ssh: help topic+no@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+no@acme.ssh
+### svc.out@corp.ssh: help topic+no@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+no@acme.ssh
+### svc.out@corp.ssh: help carol
+exit 0
+--- stdout
+Target: carol
+Type: email
+Described: no
+
+An alias for delivery through email: it has no description.
+--- stderr
+### svc.out@corp.ssh: help carol --json
+exit 0
+--- stdout
+{"target":"carol","type":"email","described":null,"descriptor":null}
+--- stderr
+### svc.out@corp.ssh: help nobody
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: nobody
+### svc.out@corp.ssh: help nobody --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: nobody
+### svc.out@corp.ssh: help sub.x+y@acme.ssh
+exit 2
+--- stdout
+--- stderr
+dispatch: a subscription has no description: help its topic
+### svc.out@corp.ssh: help sub.x+y@acme.ssh --json
+exit 2
+--- stdout
+--- stderr
+dispatch: a subscription has no description: help its topic
+### svc.out@corp.ssh: help Bad@T
+exit 2
+--- stdout
+--- stderr
+dispatch: bad target
+### svc.out@corp.ssh: help Bad@T --json
+exit 2
+--- stdout
+--- stderr
+dispatch: bad target
+### group.s@acme.ssh: help
+exit 0
+--- stdout
+Caller: group.s@acme.ssh
+Role: group
+Receives: yes
+Sends: yes
+
+chat <peer> [--chunked]
+  Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored. Needs: receive, send.
+send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]
+  Send a message or a file; --live offers it to a live recipient and returns its reply. Needs: send.
+send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]
+  Send a tar on stdin as one message, stored as received. Needs: send.
+recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]
+  List, read or follow a mailbox as a chunked stream; only a read without --peek consumes. Needs: receive.
+recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]
+  Stream a bag back as the tar it came as; consumes it without --peek. Needs: receive.
+recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)
+  Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order. Needs: receive.
+accept <sid>
+  Take a live exchange announced on your follow. Needs: receive.
+sub <topic> [--ttl S]
+  Subscribe to a topic; prints the subscription's name. Needs: receive.
+unsub <sub>
+  Drop a subscription and its mailbox. Needs: receive.
+register <instance> [--ttl S]
+  As an address that takes instances: bind an instance to the key on stdin. Needs: receive.
+release [<instance>]
+  Drop one of your instances; as an instance, yourself. Needs: receive.
+admit <instance> [<instance> ...]
+  As an address that takes instances: admit instances as targets, answering their ask. Needs: receive.
+reject <instance> [<instance> ...]
+  As an address that takes instances: say an instance does not exist: its claim and mailbox go. Needs: receive.
+instances
+  List your instances: mail waiting, holder, claim. Needs: receive.
+list [--type native|topic|sub|email|tg]
+  List reachable targets and their types. Needs: receive.
+id
+  Print your identity and serial.
+help [<target>] [--json]
+  What the hub supports, or what an address handles.
+register_description [--see PAT]... < descriptor.json | --clear
+  Register what this identity handles, checked by the hub. Needs: receive.
+
+Exit codes: README.md. Add --json to help for this list as JSON; docs/help.md has the format.
+--- stderr
+### group.s@acme.ssh: help --json
+exit 0
+--- stdout
+{"caller":"group.s@acme.ssh","role":"group","receives":"yes","sends":"yes","hub":{"verbs":[{"verb":"chat","usage":"chat <peer> [--chunked]","needs":["receive","send"],"summary":"Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored."},{"verb":"send","usage":"send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]","needs":["send"],"summary":"Send a message or a file; --live offers it to a live recipient and returns its reply."},{"verb":"send_bag","usage":"send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]","needs":["send"],"summary":"Send a tar on stdin as one message, stored as received."},{"verb":"recv","usage":"recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]","needs":["receive"],"summary":"List, read or follow a mailbox as a chunked stream; only a read without --peek consumes."},{"verb":"recv_bag","usage":"recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]","needs":["receive"],"summary":"Stream a bag back as the tar it came as; consumes it without --peek."},{"verb":"recv_ack","usage":"recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)","needs":["receive"],"summary":"Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order."},{"verb":"accept","usage":"accept <sid>","needs":["receive"],"summary":"Take a live exchange announced on your follow."},{"verb":"sub","usage":"sub <topic> [--ttl S]","needs":["receive"],"summary":"Subscribe to a topic; prints the subscription's name."},{"verb":"unsub","usage":"unsub <sub>","needs":["receive"],"summary":"Drop a subscription and its mailbox."},{"verb":"register","usage":"register <instance> [--ttl S]","needs":["receive"],"summary":"As an address that takes instances: bind an instance to the key on stdin."},{"verb":"release","usage":"release [<instance>]","needs":["receive"],"summary":"Drop one of your instances; as an instance, yourself."},{"verb":"admit","usage":"admit <instance> [<instance> ...]","needs":["receive"],"summary":"As an address that takes instances: admit instances as targets, answering their ask."},{"verb":"reject","usage":"reject <instance> [<instance> ...]","needs":["receive"],"summary":"As an address that takes instances: say an instance does not exist: its claim and mailbox go."},{"verb":"instances","usage":"instances","needs":["receive"],"summary":"List your instances: mail waiting, holder, claim."},{"verb":"list","usage":"list [--type native|topic|sub|email|tg]","needs":["receive"],"summary":"List reachable targets and their types."},{"verb":"id","usage":"id","needs":[],"summary":"Print your identity and serial."},{"verb":"help","usage":"help [<target>] [--json]","needs":[],"summary":"What the hub supports, or what an address handles."},{"verb":"register_description","usage":"register_description [--see PAT]... < descriptor.json | --clear","needs":["receive"],"summary":"Register what this identity handles, checked by the hub."}]}}
+--- stderr
+### group.s@acme.ssh: help svc.one@acme.ssh
+exit 0
+--- stdout
+Target: svc.one@acme.ssh
+Type: native
+Role: svc
+Receives: yes
+Claim: live
+Live: no
+Instances: no
+Described: no
+
+No description registered: this address has not said what requests it handles.
+--- stderr
+### group.s@acme.ssh: help svc.one@acme.ssh --json
+exit 0
+--- stdout
+{"target":"svc.one@acme.ssh","type":"native","role":"svc","receives":"yes","claim":"live","live":false,"instances":false,"described":null,"descriptor":null}
+--- stderr
+### group.s@acme.ssh: help svc.out@corp.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.out@corp.ssh
+### group.s@acme.ssh: help svc.out@corp.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.out@corp.ssh
+### group.s@acme.ssh: help group.s@acme.ssh
+exit 0
+--- stdout
+Target: group.s@acme.ssh
+Type: native
+Role: group
+Receives: yes
+Claim: live
+Live: no
+Instances: yes
+Described: D
+
+Runs sessions.
+Version: 0.5
+
+cmd.create	structured	live	address	-	Start one.
+in.message	structured	spool	both	-	A message.
+(no subject)	text	spool	instance	-	Anything.
+
+(no subject):
+  Say what you need.
+  And by when.
+--- stderr
+### group.s@acme.ssh: help group.s@acme.ssh --json
+exit 0
+--- stdout
+{"target":"group.s@acme.ssh","type":"native","role":"group","receives":"yes","claim":"live","live":false,"instances":true,"described":"D","descriptor":{"descriptor":1,"version":"0.5","summary":"Runs sessions.","requests":[{"subject":"cmd.create","form":"structured","delivery":["live"],"summary":"Start one.","scope":"address","schema":{"type":"object"},"reply":{"content_type":"application/json","statuses":[200,404,500]}},{"subject":"in.message","form":"structured","delivery":["spool"],"summary":"A message.","scope":"both","schema":{}},{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","scope":"instance","guide":"Say what you need.\nAnd by when."}]}}
+--- stderr
+### group.s@acme.ssh: help group.s+abc@acme.ssh
+exit 0
+--- stdout
+Target: group.s+abc@acme.ssh
+Type: native
+Role: group
+Receives: yes
+Claim: none
+Live: no
+Address: group.s@acme.ssh
+Described: D
+
+Runs sessions.
+Version: 0.5
+
+in.message	structured	spool	both	-	A message.
+(no subject)	text	spool	instance	-	Anything.
+
+(no subject):
+  Say what you need.
+  And by when.
+--- stderr
+### group.s@acme.ssh: help group.s+abc@acme.ssh --json
+exit 0
+--- stdout
+{"target":"group.s+abc@acme.ssh","type":"native","role":"group","receives":"yes","claim":"none","live":false,"address":"group.s@acme.ssh","described":"D","descriptor":{"descriptor":1,"version":"0.5","summary":"Runs sessions.","requests":[{"subject":"in.message","form":"structured","delivery":["spool"],"summary":"A message.","scope":"both","schema":{}},{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","scope":"instance","guide":"Say what you need.\nAnd by when."}]}}
+--- stderr
+### group.s@acme.ssh: help svc.none+x@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.none+x@acme.ssh
+### group.s@acme.ssh: help svc.none+x@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.none+x@acme.ssh
+### group.s@acme.ssh: help svc.nobody@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.nobody@acme.ssh
+### group.s@acme.ssh: help svc.nobody@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.nobody@acme.ssh
+### group.s@acme.ssh: help topic+ev@acme.ssh
+exit 0
+--- stdout
+Target: topic+ev@acme.ssh
+Type: topic
+Role: topic
+Receives: policy
+Publish: no
+Subscribe: yes
+Described: D
+
+For people.
+
+(no subject)	text	spool	both	-	Anything.
+
+(no subject):
+  Say it.
+--- stderr
+### group.s@acme.ssh: help topic+ev@acme.ssh --json
+exit 0
+--- stdout
+{"target":"topic+ev@acme.ssh","type":"topic","role":"topic","receives":"policy","publish":false,"subscribe":true,"described":"D","descriptor":{"descriptor":1,"summary":"For people.","requests":[{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","guide":"Say it."}]}}
+--- stderr
+### group.s@acme.ssh: help topic+no@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+no@acme.ssh
+### group.s@acme.ssh: help topic+no@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+no@acme.ssh
+### group.s@acme.ssh: help carol
+exit 0
+--- stdout
+Target: carol
+Type: email
+Described: no
+
+An alias for delivery through email: it has no description.
+--- stderr
+### group.s@acme.ssh: help carol --json
+exit 0
+--- stdout
+{"target":"carol","type":"email","described":null,"descriptor":null}
+--- stderr
+### group.s@acme.ssh: help nobody
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: nobody
+### group.s@acme.ssh: help nobody --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: nobody
+### group.s@acme.ssh: help sub.x+y@acme.ssh
+exit 2
+--- stdout
+--- stderr
+dispatch: a subscription has no description: help its topic
+### group.s@acme.ssh: help sub.x+y@acme.ssh --json
+exit 2
+--- stdout
+--- stderr
+dispatch: a subscription has no description: help its topic
+### group.s@acme.ssh: help Bad@T
+exit 2
+--- stdout
+--- stderr
+dispatch: bad target
+### group.s@acme.ssh: help Bad@T --json
+exit 2
+--- stdout
+--- stderr
+dispatch: bad target
+### publisher+app@acme.ssh: help
+exit 0
+--- stdout
+Caller: publisher+app@acme.ssh
+Role: publisher
+Receives: no
+Sends: yes
+
+chat <peer> [--chunked]
+  Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored. Needs: receive, send.
+send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]
+  Send a message or a file; --live offers it to a live recipient and returns its reply. Needs: send.
+send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]
+  Send a tar on stdin as one message, stored as received. Needs: send.
+recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]
+  List, read or follow a mailbox as a chunked stream; only a read without --peek consumes. Needs: receive.
+recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]
+  Stream a bag back as the tar it came as; consumes it without --peek. Needs: receive.
+recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)
+  Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order. Needs: receive.
+accept <sid>
+  Take a live exchange announced on your follow. Needs: receive.
+sub <topic> [--ttl S]
+  Subscribe to a topic; prints the subscription's name. Needs: receive.
+unsub <sub>
+  Drop a subscription and its mailbox. Needs: receive.
+register <instance> [--ttl S]
+  As an address that takes instances: bind an instance to the key on stdin. Needs: receive.
+release [<instance>]
+  Drop one of your instances; as an instance, yourself. Needs: receive.
+admit <instance> [<instance> ...]
+  As an address that takes instances: admit instances as targets, answering their ask. Needs: receive.
+reject <instance> [<instance> ...]
+  As an address that takes instances: say an instance does not exist: its claim and mailbox go. Needs: receive.
+instances
+  List your instances: mail waiting, holder, claim. Needs: receive.
+list [--type native|topic|sub|email|tg]
+  List reachable targets and their types. Needs: receive.
+id
+  Print your identity and serial.
+help [<target>] [--json]
+  What the hub supports, or what an address handles.
+register_description [--see PAT]... < descriptor.json | --clear
+  Register what this identity handles, checked by the hub. Needs: receive.
+
+Exit codes: README.md. Add --json to help for this list as JSON; docs/help.md has the format.
+--- stderr
+### publisher+app@acme.ssh: help --json
+exit 0
+--- stdout
+{"caller":"publisher+app@acme.ssh","role":"publisher","receives":"no","sends":"yes","hub":{"verbs":[{"verb":"chat","usage":"chat <peer> [--chunked]","needs":["receive","send"],"summary":"Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored."},{"verb":"send","usage":"send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]","needs":["send"],"summary":"Send a message or a file; --live offers it to a live recipient and returns its reply."},{"verb":"send_bag","usage":"send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]","needs":["send"],"summary":"Send a tar on stdin as one message, stored as received."},{"verb":"recv","usage":"recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]","needs":["receive"],"summary":"List, read or follow a mailbox as a chunked stream; only a read without --peek consumes."},{"verb":"recv_bag","usage":"recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]","needs":["receive"],"summary":"Stream a bag back as the tar it came as; consumes it without --peek."},{"verb":"recv_ack","usage":"recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)","needs":["receive"],"summary":"Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order."},{"verb":"accept","usage":"accept <sid>","needs":["receive"],"summary":"Take a live exchange announced on your follow."},{"verb":"sub","usage":"sub <topic> [--ttl S]","needs":["receive"],"summary":"Subscribe to a topic; prints the subscription's name."},{"verb":"unsub","usage":"unsub <sub>","needs":["receive"],"summary":"Drop a subscription and its mailbox."},{"verb":"register","usage":"register <instance> [--ttl S]","needs":["receive"],"summary":"As an address that takes instances: bind an instance to the key on stdin."},{"verb":"release","usage":"release [<instance>]","needs":["receive"],"summary":"Drop one of your instances; as an instance, yourself."},{"verb":"admit","usage":"admit <instance> [<instance> ...]","needs":["receive"],"summary":"As an address that takes instances: admit instances as targets, answering their ask."},{"verb":"reject","usage":"reject <instance> [<instance> ...]","needs":["receive"],"summary":"As an address that takes instances: say an instance does not exist: its claim and mailbox go."},{"verb":"instances","usage":"instances","needs":["receive"],"summary":"List your instances: mail waiting, holder, claim."},{"verb":"list","usage":"list [--type native|topic|sub|email|tg]","needs":["receive"],"summary":"List reachable targets and their types."},{"verb":"id","usage":"id","needs":[],"summary":"Print your identity and serial."},{"verb":"help","usage":"help [<target>] [--json]","needs":[],"summary":"What the hub supports, or what an address handles."},{"verb":"register_description","usage":"register_description [--see PAT]... < descriptor.json | --clear","needs":["receive"],"summary":"Register what this identity handles, checked by the hub."}]}}
+--- stderr
+### publisher+app@acme.ssh: help svc.one@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.one@acme.ssh
+### publisher+app@acme.ssh: help svc.one@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.one@acme.ssh
+### publisher+app@acme.ssh: help svc.out@corp.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.out@corp.ssh
+### publisher+app@acme.ssh: help svc.out@corp.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.out@corp.ssh
+### publisher+app@acme.ssh: help group.s@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: group.s@acme.ssh
+### publisher+app@acme.ssh: help group.s@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: group.s@acme.ssh
+### publisher+app@acme.ssh: help group.s+abc@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: group.s+abc@acme.ssh
+### publisher+app@acme.ssh: help group.s+abc@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: group.s+abc@acme.ssh
+### publisher+app@acme.ssh: help svc.none+x@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.none+x@acme.ssh
+### publisher+app@acme.ssh: help svc.none+x@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.none+x@acme.ssh
+### publisher+app@acme.ssh: help svc.nobody@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.nobody@acme.ssh
+### publisher+app@acme.ssh: help svc.nobody@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: svc.nobody@acme.ssh
+### publisher+app@acme.ssh: help topic+ev@acme.ssh
+exit 0
+--- stdout
+Target: topic+ev@acme.ssh
+Type: topic
+Role: topic
+Receives: policy
+Publish: yes
+Subscribe: no
+Described: D
+
+For people.
+
+(no subject)	text	spool	both	-	Anything.
+
+(no subject):
+  Say it.
+--- stderr
+### publisher+app@acme.ssh: help topic+ev@acme.ssh --json
+exit 0
+--- stdout
+{"target":"topic+ev@acme.ssh","type":"topic","role":"topic","receives":"policy","publish":true,"subscribe":false,"described":"D","descriptor":{"descriptor":1,"summary":"For people.","requests":[{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","guide":"Say it."}]}}
+--- stderr
+### publisher+app@acme.ssh: help topic+no@acme.ssh
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+no@acme.ssh
+### publisher+app@acme.ssh: help topic+no@acme.ssh --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: topic+no@acme.ssh
+### publisher+app@acme.ssh: help carol
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: carol
+### publisher+app@acme.ssh: help carol --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: carol
+### publisher+app@acme.ssh: help nobody
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: nobody
+### publisher+app@acme.ssh: help nobody --json
+exit 3
+--- stdout
+--- stderr
+dispatch: no such target, or no access: nobody
+### publisher+app@acme.ssh: help sub.x+y@acme.ssh
+exit 2
+--- stdout
+--- stderr
+dispatch: a subscription has no description: help its topic
+### publisher+app@acme.ssh: help sub.x+y@acme.ssh --json
+exit 2
+--- stdout
+--- stderr
+dispatch: a subscription has no description: help its topic
+### publisher+app@acme.ssh: help Bad@T
+exit 2
+--- stdout
+--- stderr
+dispatch: bad target
+### publisher+app@acme.ssh: help Bad@T --json
+exit 2
+--- stdout
+--- stderr
+dispatch: bad target
+### register_description
+exit 2
+--- stdout
+--- stderr
+dispatch: description refused: not exactly one JSON value
+### register_description
+exit 2
+--- stdout
+--- stderr
+dispatch: description refused: not exactly one JSON value
+### register_description --see
+exit 2
+--- stdout
+--- stderr
+dispatch: --see needs a value
+### register_description --see (
+exit 2
+--- stdout
+--- stderr
+dispatch: description refused: bad --see pattern (up to 128 characters of [a-z0-9._+/@*?-]): "("
+### register_description --clear --see a
+exit 2
+--- stdout
+--- stderr
+dispatch: --clear takes no --see
+### register_description --nope
+exit 2
+--- stdout
+--- stderr
+dispatch: unexpected arg '--nope'
+### registers
+exit 0
+--- stdout
+described svc.one@acme.ssh D
+--- stderr
+### stored
+Date: D
+See: *@a.ssh *@b.ssh
+Whole-Default: text
+Whole-Json-Bytes: 526
+Whole-Text-Bytes: 219
+Instance-Default: text
+Instance-Json-Bytes: 324
+Instance-Text-Bytes: 171
+
+{"descriptor":1,"version":"0.5","summary":"Runs sessions.","requests":[{"subject":"cmd.create","form":"structured","delivery":["live"],"summary":"Start one.","scope":"address","schema":{"type":"object"},"reply":{"content_type":"application/json","statuses":[200,404,500]}},{"subject":"in.message","form":"structured","delivery":["spool"],"summary":"A message.","scope":"both","schema":{}},{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","scope":"instance","guide":"Say what you need.\nAnd by when."}]}Runs sessions.
+Version: 0.5
+
+cmd.create	structured	live	address	-	Start one.
+in.message	structured	spool	both	-	A message.
+(no subject)	text	spool	instance	-	Anything.
+
+(no subject):
+  Say what you need.
+  And by when.
+{"descriptor":1,"version":"0.5","summary":"Runs sessions.","requests":[{"subject":"in.message","form":"structured","delivery":["spool"],"summary":"A message.","scope":"both","schema":{}},{"subject":null,"form":"text","delivery":["spool"],"summary":"Anything.","scope":"instance","guide":"Say what you need.\nAnd by when."}]}Runs sessions.
+Version: 0.5
+
+in.message	structured	spool	both	-	A message.
+(no subject)	text	spool	instance	-	Anything.
+
+(no subject):
+  Say what you need.
+  And by when.
+### clears
+exit 0
+--- stdout
+cleared svc.one@acme.ssh
+--- stderr

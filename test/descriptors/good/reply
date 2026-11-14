@@ -1,0 +1,1 @@
+{"descriptor":1,"summary":"s","requests":[{"subject":"a","form":"structured","delivery":["live"],"summary":"x","schema":{},"reply":{"content_type":"application/json","statuses":[200,404,500],"schema":{}}}]}

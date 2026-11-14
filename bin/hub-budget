@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# hub-budget — operator tool (run as root on the HUB). Set a sender's flood budget: the rate and
+# burst of each of its per-(sender,recipient) buckets, for one identity or every identity of a role.
+#
+#   hub-budget set  <identity|role> [--rate MSGS_PER_SEC] [--burst MSGS]
+#   hub-budget rm   <identity|role>
+#   hub-budget list
+#
+# An identity's own budget beats its role's; with neither, the default (0.5/s, burst 12). A budget
+# applies whole: a field set leaves out is the default. Re-setting replaces. Topic publishing keeps
+# its own bucket (hub-topic --rate/--burst).
+set -euo pipefail
+[ "$(id -u)" = 0 ] || { echo "hub-budget: run as root on the hub" >&2; exit 1; }
+HUB_LIB="${HUB_LIB:-/usr/local/lib/hub}"
+. "$HUB_LIB/common.sh"
+install -d -o root -g hub -m 2750 "$BUDGETS"
+DEF_RATE="$(mt_rate "$FLOOD_RATE_MT")"; DEF_BURST=$((FLOOD_BURST_MT/1000))
+
+budget_file(){ # <identity|role> -> its budget file, or exit 2
+  local s="${1:-}"
+  if [[ $s == *@* ]]; then
+    valid_ident "$s" || { echo "hub-budget: $(ident_problem "$s")" >&2; exit 2; }
+    [ "$(role_get "$(id_role "$s")" out)" != no ] || { echo "hub-budget: $s is the hub's own address; it sends nothing" >&2; exit 2; }
+    printf '%s/%s' "$BUDGETS" "$(fs_name "$s")"
+  else
+    role_known "$s" || { echo "hub-budget: no such role '$s'" >&2; exit 2; }
+    [ "$(role_get "$s" out)" != no ] || { echo "hub-budget: role $s is the hub's own; it sends nothing" >&2; exit 2; }
+    printf '%s/%s' "$BUDGETS" "$s"
+  fi
+}
+
+verb="${1:-}"; shift || true
+case "$verb" in
+  set)
+    subj="${1:-}"; shift || true
+    f="$(budget_file "$subj")"
+    rate=""; burst=""
+    while [ $# -gt 0 ]; do case "$1" in
+      --rate)  rate="${2:-}";  shift 2;;
+      --burst) burst="${2:-}"; shift 2;;
+      *) echo "hub-budget: unexpected arg '$1'" >&2; exit 2;; esac; done
+    [ -n "$rate$burst" ] || { echo "hub-budget: give --rate and/or --burst" >&2; exit 2; }
+    [ -z "$rate" ] || rate_mt "$rate" >/dev/null || { echo "hub-budget: --rate is messages/second, > 0, up to 3 decimals" >&2; exit 2; }
+    [ -z "$burst" ] || [[ $burst =~ ^[1-9][0-9]{0,6}$ ]] || { echo "hub-budget: --burst is a positive whole number of messages" >&2; exit 2; }
+    umask 027
+    tmp="$(mktemp)"
+    { printf 'subject=%s\n' "$subj"; [ -z "$rate" ] || printf 'rate=%s\n' "$rate"; [ -z "$burst" ] || printf 'burst=%s\n' "$burst"; } > "$tmp"
+    install -o root -g hub -m 0640 "$tmp" "$f"; rm -f "$tmp"
+    echo "budget $subj rate=${rate:-$DEF_RATE}/s burst=${burst:-$DEF_BURST}"
+    ;;
+  rm)
+    s="${1:-}"; f="$BUDGETS/$(fs_name "$s")"
+    # a budget whose role or identity no longer exists (a retired role) is still removable by its name
+    [[ $s =~ ^[a-z0-9][a-z0-9._+~/@-]*$ && $s != *..* ]] && [ -f "$f" ] || f="$(budget_file "$s")"
+    [ -f "$f" ] || { echo "hub-budget: no budget for $s" >&2; exit 3; }
+    rm -f "$f"; echo "removed $s"
+    ;;
+  list)
+    shopt -s nullglob; found=0
+    for f in "$BUDGETS"/*; do
+      [ -f "$f" ] || continue
+      r="$(rec_get rate "$f")"; b="$(rec_get burst "$f")"
+      printf '%s\trate=%s/s\tburst=%s\n' "$(rec_get subject "$f")" "${r:-$DEF_RATE}" "${b:-$DEF_BURST}"
+      found=1
+    done
+    [ "$found" = 1 ] || echo "(no budgets — every sender has $DEF_RATE/s, burst $DEF_BURST)"
+    ;;
+  *) echo "usage: hub-budget set <identity|role> [--rate N] [--burst N] | rm <identity|role> | list" >&2; exit 2 ;;
+esac

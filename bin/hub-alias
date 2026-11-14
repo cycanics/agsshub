@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# hub-alias — operator tool (run as root on the HUB). Manage backend addressing aliases:
+# a local alias -> {type, addr} so `send <alias>` routes to a backend transport (email/tg).
+#
+#   hub-alias add <alias> --type email|tg --addr <address>
+#   hub-alias rm  <alias>
+#   hub-alias list [--type T]
+set -euo pipefail
+[ "$(id -u)" = 0 ] || { echo "hub-alias: run as root on the hub" >&2; exit 1; }
+HUB_LIB="${HUB_LIB:-/usr/local/lib/hub}"
+. "$HUB_LIB/common.sh"
+install -d -o root -g hub -m 2750 "$ALIASES"
+
+verb="${1:-}"; shift || true
+case "$verb" in
+  add)
+    alias="${1:-}"; shift || true
+    valid_alias "$alias" || { echo "hub-alias: bad alias (need $ALIAS_RE)" >&2; exit 2; }
+    type=""; addr=""
+    while [ $# -gt 0 ]; do case "$1" in
+      --type) type="${2:-}"; shift 2;; --addr) addr="${2:-}"; shift 2;;
+      *) echo "hub-alias: unexpected arg '$1'" >&2; exit 2;; esac; done
+    grep -Fqx -- "$type" <<<"${BACKEND_TYPES// /$'\n'}" || { echo "hub-alias: type must be one of: $BACKEND_TYPES" >&2; exit 2; }
+    [ -n "$addr" ] || { echo "hub-alias: --addr required" >&2; exit 2; }
+    umask 027
+    tmp="$(mktemp)"; printf 'type=%s\naddr=%s\n' "$type" "$addr" > "$tmp"
+    install -o root -g hub -m 0640 "$tmp" "$ALIASES/$alias"; rm -f "$tmp"
+    echo "alias $alias -> type=$type addr=$addr"
+    ;;
+  rm)
+    alias="${1:-}"; valid_alias "$alias" || { echo "hub-alias: bad alias" >&2; exit 2; }
+    [ -f "$ALIASES/$alias" ] && { rm -f "$ALIASES/$alias"; echo "removed $alias"; } || { echo "no such alias" >&2; exit 3; }
+    ;;
+  list)
+    filter=""; [ "${1:-}" = --type ] && filter="${2:-}"
+    shopt -s nullglob; found=0
+    for a in "$ALIASES"/*; do [ -f "$a" ] || continue
+      t="$(rec_get type "$a")"
+      { [ -z "$filter" ] || [ "$filter" = "$t" ]; } && { echo "${a##*/}	type=$t	addr=$(rec_get addr "$a")"; found=1; }
+    done
+    [ "$found" = 0 ] && echo "(no aliases${filter:+ of type $filter})"
+    ;;
+  *) echo "usage: hub-alias add <alias> --type email|tg --addr <addr> | rm <alias> | list [--type T]" >&2; exit 2 ;;
+esac

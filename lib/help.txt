@@ -1,0 +1,38 @@
+chat <peer> [--chunked]
+  Open-ended live streams both ways with a peer that follows its mailbox; nothing is stored. Needs: receive, send.
+send <target> [--id ID] [--subject VERB] [--size N] [--wait S] [--durable] (-- <message> | -m | -m:rfc5322 | --file NAME) [--chunked] [--live]
+  Send a message or a file; --live offers it to a live recipient and returns its reply. Needs: send.
+send_bag <target> [--msg PATH] [--id ID] [--subject VERB] [--wait S] [--durable] [--chunked]
+  Send a tar on stdin as one message, stored as received. Needs: send.
+recv [<mailbox>] [--peek[:header|full|rfc5322|file|bag [PATH]]] [--limit BYTES] [--id ID... | --follow] [--header:stderr]
+  List, read or follow a mailbox as a chunked stream; only a read without --peek consumes. Needs: receive.
+recv_bag [<mailbox>] [--id ID] [--peek] [--header:stderr]
+  Stream a bag back as the tar it came as; consumes it without --peek. Needs: receive.
+recv_ack [<mailbox>] (ID... | -m:ids | --before ID | --before-including ID)
+  Drop handled messages and notices; -m:ids reads the ids from stdin, one per line; --before[-including] drops what precedes an id in listing order. Needs: receive.
+accept <sid>
+  Take a live exchange announced on your follow. Needs: receive.
+sub <topic> [--ttl S]
+  Subscribe to a topic; prints the subscription's name. Needs: receive.
+unsub <sub>
+  Drop a subscription and its mailbox. Needs: receive.
+register <instance> [--ttl S]
+  As an address that takes instances: bind an instance to the key on stdin. Needs: receive.
+release [<instance>]
+  Drop one of your instances; as an instance, yourself. Needs: receive.
+admit <instance> [<instance> ...]
+  As an address that takes instances: admit instances as targets, answering their ask. Needs: receive.
+reject <instance> [<instance> ...]
+  As an address that takes instances: say an instance does not exist: its claim and mailbox go. Needs: receive.
+instances
+  List your instances: mail waiting, holder, claim. Needs: receive.
+list [--type native|topic|sub|email|tg]
+  List reachable targets and their types. Needs: receive.
+id
+  Print your identity and serial.
+help [<target>] [--json]
+  What the hub supports, or what an address handles.
+register_description [--see PAT]... < descriptor.json | --clear
+  Register what this identity handles, checked by the hub. Needs: receive.
+
+Exit codes: README.md. Add --json to help for this list as JSON; docs/help.md has the format.
