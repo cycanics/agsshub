@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"agsshub/expiry"
+	"github.com/cycanics/agsshub/go/expiry"
 )
 
 // headerMax bounds a stored header block: the client's (FieldMaxBytes) and the hub's, a --msg path included.

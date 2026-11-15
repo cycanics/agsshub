@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"agsshub/descriptor"
+	"github.com/cycanics/agsshub/go/descriptor"
 )
 
 func (h *Hub) describedPath(id string) string { return filepath.Join(h.described, fsName(id)) }

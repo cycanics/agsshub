@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"agsshub/descriptor"
+	"github.com/cycanics/agsshub/go/descriptor"
 )
 
 const (

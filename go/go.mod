@@ -1,4 +1,4 @@
-module agsshub
+module github.com/cycanics/agsshub/go
 
 go 1.27
 

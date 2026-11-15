@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"agsshub/hub"
+	"github.com/cycanics/agsshub/go/hub"
 )
 
 func main() {

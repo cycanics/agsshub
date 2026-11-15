@@ -20,6 +20,8 @@ docker compose -f dev-hub/compose.yaml up -d --build --wait
 
 The hub listens on `127.0.0.1:2422`.
 
+To install just the daemon, without a checkout: `go install github.com/cycanics/agsshub/go/cmd/agsshub-hubd@latest`.
+
 ## 2. Create two identities
 
 ```sh

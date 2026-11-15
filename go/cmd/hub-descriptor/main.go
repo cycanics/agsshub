@@ -9,7 +9,7 @@ import (
 	"io"
 	"os"
 
-	"agsshub/descriptor"
+	"github.com/cycanics/agsshub/go/descriptor"
 )
 
 func refuse(format string, a ...any) {

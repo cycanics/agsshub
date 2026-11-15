@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"agsshub/descriptor"
-	"agsshub/expiry"
+	"github.com/cycanics/agsshub/go/descriptor"
+	"github.com/cycanics/agsshub/go/expiry"
 )
 
 // subjectField is a Subject as a stored client field.

@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"agsshub/expiry"
+	"github.com/cycanics/agsshub/go/expiry"
 )
 
 // age makes a mailbox's message look uncollected for longer than MSG_TTL.

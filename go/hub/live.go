@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"agsshub/descriptor"
+	"github.com/cycanics/agsshub/go/descriptor"
 )
 
 type exchangeTable struct {

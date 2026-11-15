@@ -149,6 +149,12 @@ A folder travels as a bag.
 The server component is `agsshub-hubd`: one Go daemon with its own SSH server, over a data dir of plain
 files, no database ([docs/hub.md](docs/hub.md)). Runs on one always-on Linux VM (the "hub").
 
+Install it with Go (1.27+):
+
+```sh
+go install github.com/cycanics/agsshub/go/cmd/agsshub-hubd@latest
+```
+
 ## Help
 
 `help` says what the hub supports, and `help <target>` what an address handles: each request's

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"agsshub/expiry"
+	"github.com/cycanics/agsshub/go/expiry"
 )
 
 // followRegistry: the follower of each mailbox. Its mutex is the follow lock: a takeover registers the new
