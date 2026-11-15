@@ -375,7 +375,7 @@ H = `Header-Size`, T = 212.
 | the tar end marker | missing, or the tar cut: exit 4, nothing stored |
 | not a tar | exit 2 |
 | an empty bag | exit 2 |
-| the size cap | 256 MB of stored bytes; over it: exit 2 |
+| the size cap | 256 MiB of stored bytes; over it: exit 2 |
 | `--msg` | names no regular member, or a sparse one: exit 2 |
 
 | Members | |
@@ -703,7 +703,7 @@ Removed: the per-subscription id mint (`subEnsure`), the per-subscription counte
 |---|---|
 | `go test ./...` | 196 tests (hub 165, expiry 24, descriptor 7; 3 skipped in this environment), green; among them the message-file layout cases 1-7, the trailer, damaged files, bag members, event ids and the record, `--wait` (each pickup, `--peek:header` none), `--durable` (the fsynced paths watched: none without it), raw and chunked LIVE kinds, `chat`, D24's EOFs, the ask cap, idle flood buckets; the read stream: a valid chunk stream from a follow's first byte, the listing order, `--id` with `part=missing`, `--limit`, `--header:stderr` order on both outputs, consumption per flush and a cut past the first batch, a short read cutting the stream, `recv_ack`, `recv_ack --before` and `--before-including` (a subscription across interleaved sessions, an own mailbox, an absent msgid, notices never in the range, an arrival during the call, an arrival after the read with a lower msgid in an own, an instance's and a subscription's mailbox, combined with ids), arrival order with msgid ties, a header value that is not valid UTF-8, the removed forms |
 | `test/dev-hub.sh` | 225 checks through real ssh, green |
-| `test/full-disk.sh` | green: 256 sends on a 2 MB tmpfs, 76 meet exit 1, never `dup`, no fsync |
+| `test/full-disk.sh` | green: 256 sends on a 2 MiB tmpfs, 76 meet exit 1, never `dup`, no fsync |
 
 `test/bench.sh` (`go/cmd/hub-bench`): the daemon on loopback ssh, one connection per identity, each operation one
 session; latency from the session's open to its exit status. 4 vCPUs, other agents' load on the machine:

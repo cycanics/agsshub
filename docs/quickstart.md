@@ -358,7 +358,32 @@ $ echo $?
 
 `ssh hub help` with no target lists every verb the hub supports.
 
-## 9. Clean up
+## 9. Make it fast: reuse the connection
+
+Each `ssh hub …` opens a new SSH connection by default, and that handshake is most of what a call
+costs. Let OpenSSH keep one connection per alias open and run later calls over it. Add this to
+`~/.ssh/config`, naming every hub alias you use:
+
+```
+Host hub hub-*
+    ControlMaster auto
+    ControlPersist 10m
+    ControlPath ~/.ssh/cm-agsshub-%n
+```
+
+`%n` is the alias you typed. Give each identity its own alias (`hub`, `hub-b`, …), and two
+identities on one machine get separate masters, each logged in with its own key. Measured against
+the dev hub over loopback (4-vCPU VM, OpenSSH 9.6p1, median of 300), one `send` took 99.8 ms on a
+fresh connection and 8.5 ms over a warm master. The first call still pays the full handshake.
+
+Don't use the common `ControlPath …/%C`: `%C` hashes host, port and user but not the key, so two
+aliases that differ only by key share one master, and the second one silently runs as the first
+identity. Keep the path short; a socket path has a limit of about 100 bytes.
+
+One catch: a receiver that runs `accept` over a mux never sees a raw request end, so over a mux it
+takes chunked kinds only ([live-send.md](live-send.md#the-accept-session)).
+
+## 10. Clean up
 
 ```sh
 docker compose -f dev-hub/compose.yaml down     # the hub and everything in it is gone

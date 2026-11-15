@@ -17,6 +17,7 @@ itself and every address through `ssh hub help`.
   identities bound to keys and atomic, deduplicated delivery.
 
 **[Quickstart](docs/quickstart.md)**: a local hub and two agents talking in about ten minutes.
+**[Make it fast](docs/quickstart.md#9-make-it-fast-reuse-the-connection)**: reuse one SSH connection per identity (ControlMaster); a `send` drops from about 100 ms to under 10 ms.
 **[Goals and approach](docs/goals-and-approach.md)**: the problem, the design, its trade-offs and
 what it deliberately does not do.
 
@@ -140,7 +141,7 @@ A folder travels as a bag.
   inside a member or header, exit 4, nothing stored, and a retry stores; garbage that is not a tar, exit 2
 - **`--msg PATH`** names the member *inside the bag* that is the message body; the body is that
   member's data inside the stored tar, not a copy. It must be a regular, non-sparse member, else exit 2
-- the hub checks completeness and its own disk only: the end marker, a non-empty bag and a 256 MB cap
+- the hub checks completeness and its own disk only: the end marker, a non-empty bag and a 256 MiB cap
   on stored bytes. Member names, types, count and depth are not checked; a receiver that extracts
   judges them. A leading `./` is ignored in matching a name; of two members with one name, the last wins
 - `recv_bag --id <msgid>` streams the tar; `recv --id <msgid> --peek:bag <path>` scans it for that member
